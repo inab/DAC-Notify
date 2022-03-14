@@ -39,7 +39,7 @@ const createEmail = async (msg, additionalFields) => {
         }
     };
 
-    sendEmail(message);
+    return message;
 }
 
 const subscriber = async () => {
