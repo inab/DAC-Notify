@@ -1,0 +1,32 @@
+version: "3"
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: 'rabbitmq'
+    ports:
+      - 5672:5672
+      - 15672:15672
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://rabbitmq:15672"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+    networks:
+      - rabbitmq
+  subscriber:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    networks:
+      - rabbitmq
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    links: 
+        - rabbitmq
+
+networks:
+  rabbitmq:
+    driver: bridge
