@@ -21,12 +21,7 @@ services:
       - .env
     networks:
       - rabbitmq
-    restart: on-failure
-    depends_on:
-      - rabbitmq
-    links: 
-        - rabbitmq
-
+    command: sh -c '/bin/wait-for-it.sh rabbitmq:5672 --timeout=60 -- npm run subscribe'
 networks:
   rabbitmq:
     driver: bridge
