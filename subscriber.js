@@ -15,7 +15,7 @@ const createEmail = async (msg, additionalFields) => {
 
     let list = await getUserList();
 
-    let dacMembersIds = await getDACs(msg.dataset);
+    let dacMembersIds = await getDACs(msg.dataset.split(",")[0]);
 
     const mask = list.map(element => dacMembersIds[0]["members"].some(item => element.id.includes(item) === true));
 
@@ -74,6 +74,7 @@ const subscriber = async () => {
                 fields = {
                     subject: "File permissions updated",
                     template: "permissions-api",
+                    method: msg.method,
                     dataset: msg.dataset,
                     user: msg.userId
                 }
