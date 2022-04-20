@@ -67,7 +67,8 @@ const subscriber = async () => {
                 fields = {
                     subject: "Your Data Access Committee has been created",
                     template: "dac-management",
-                    dac: msg.dacId
+                    dac: msg.dacId,
+                    dataset: msg.dataset
                 }
                 break;
             case "permissions-api":
