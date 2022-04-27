@@ -15,18 +15,22 @@ const createEmail = async (msg, additionalFields) => {
 
     let list = await getUserList();
 
-    let dacMembersIds = await getDACs(msg.dataset.split(",")[0]);
+    let dacMembersIds, mask, dacsInfo, dacsEmail;
 
-    const mask = list.map(element => dacMembersIds[0]["members"].some(item => element.id.includes(item) === true));
+    if(msg.dataset !== undefined) {
+        dacMembersIds = await getDACs(msg.dataset.split(",")[0]);
 
-    const dacsInfo = list.filter((item, i) => mask[i]);
-
-    const dacsEmail = dacsInfo.map(el => el.email).join(",")
+        mask = list.map(element => dacMembersIds[0]["members"].some(item => element.id.includes(item) === true));
+    
+        dacsInfo = list.filter((item, i) => mask[i]);
+    
+        dacsEmail = dacsInfo.map(el => el.email).join(",")
+    }
 
     const message = {
         from: `"iPC Data Acess Framework" <ipc-project.no-reply@bsc.es>`,
         to: msg.userEmail,
-        cc: dacsEmail,
+        cc: dacsEmail ? dacsEmail : msg.dacsEmail,
         subject: additionalFields.subject,
         template: additionalFields.template,
         context: {
@@ -81,6 +85,9 @@ const subscriber = async () => {
                 }
                 break;
         }
+
+        console.log("FIELDS:")
+        console.log(fields)
 
         try {
             const email = await createEmail(msg, fields);
