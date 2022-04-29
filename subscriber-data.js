@@ -17,20 +17,18 @@ const createEmail = async (msg, additionalFields) => {
 
     let dacMembersIds, mask, dacsInfo, dacsEmail;
 
-    if(msg.dataset !== undefined) {
-        dacMembersIds = await getDACs(msg.dataset.split(",")[0]);
+    dacMembersIds = await getDACs(msg.dataset.split(",")[0].split(":").pop());
 
-        mask = list.map(element => dacMembersIds[0]["members"].some(item => element.id.includes(item) === true));
-    
-        dacsInfo = list.filter((item, i) => mask[i]);
-    
-        dacsEmail = dacsInfo.map(el => el.email).join(",")
-    }
+    mask = list.map(element => dacMembersIds[0]["members"].some(item => element.id.includes(item) === true));
+
+    dacsInfo = list.filter((item, i) => mask[i]);
+
+    dacsEmail = dacsInfo.map(el => el.email).join(",")
 
     const message = {
         from: `"iPC Data Acess Framework" <ipc-project.no-reply@bsc.es>`,
         to: msg.userEmail,
-        cc: dacsEmail ? dacsEmail : msg.dacsEmail,
+        cc: dacsEmail,
         subject: additionalFields.subject,
         template: additionalFields.template,
         context: {
@@ -47,12 +45,12 @@ const subscriber = async () => {
 
     const channel = await connection.createChannel()
 
-    await channel.assertQueue(process.env.RABBITMQ_QUEUE)
+    await channel.assertQueue(process.env.RABBITMQ_QUEUE_DATA)
 
-    channel.consume(process.env.RABBITMQ_QUEUE, async (message) => {
+    channel.consume(process.env.RABBITMQ_QUEUE_DATA, async (message) => {
 
         const msg = JSON.parse(message.content.toString())
-        
+
         console.log(`Received message: Source - '${msg.source}'`)
 
         let fields;
@@ -70,7 +68,7 @@ const subscriber = async () => {
             case "dac-management":
                 fields = {
                     subject: "Your Data Access Committee has been created",
-                    template: "dac-management",
+                    template: "dac-management-creation",
                     dac: msg.dacId,
                     dataset: msg.dataset
                 }
@@ -92,7 +90,7 @@ const subscriber = async () => {
         try {
             const email = await createEmail(msg, fields);
             const status = await sendEmail(email, hbSetup);
-            channel.ack(message);   
+            channel.ack(message);
             console.log('Email delivered: ', status.messageId);
         } catch (err) {
             console.error(err);
